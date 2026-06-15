@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Turn City — 관리자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d0d14;
+    --surface: #13131f;
+    --border: #1e1e30;
+    --accent: #22d3ee;
+    --accent2: #818cf8;
+    --text: #e2e2f0;
+    --muted: #6b6b8a;
+    --success: #4ade80;
+    --danger: #f87171;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* 로그인 화면 */
+  .login-wrap {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 360px;
+    text-align: center;
+  }
+  .login-card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 24px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input:focus { border-color: var(--accent); }
+  .btn {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+
+  /* 대시보드 */
+  #dashboard { display: none; }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header h1 {
+    font-size: 1.3rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+
+  /* 통계 카드 */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* 마감 토글 */
+  .control-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .control-bar label { font-size: 0.9rem; }
+  .toggle {
+    position: relative;
+    width: 48px; height: 26px;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 26px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 4px; top: 4px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  .toggle input:checked + .slider { background: var(--danger); }
+  .toggle input:checked + .slider::before { transform: translateX(22px); }
+
+  /* 검색 */
+  .search-bar {
+    display: flex; gap: 10px;
+    margin-bottom: 20px;
+  }
+  .search-bar .input { margin: 0; flex: 1; }
+  .search-bar .btn { width: auto; padding: 12px 24px; }
+
+  /* 테이블 */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+  }
+  .badge-wait { background: rgba(34,211,238,0.1); color: var(--accent); }
+  .badge-done { background: rgba(74,222,128,0.1); color: var(--success); }
+
+  /* 페이지네이션 */
+  .pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .page-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .page-btn:hover, .page-btn.active { border-color: var(--accent); color: var(--accent); }
+
+  .spinner {
+    width: 24px; height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 40px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { text-align: center; padding: 40px; color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <h2>🔒 TURN CITY 관리자</h2>
+    <input class="input" type="password" id="pw-input" placeholder="비밀번호 입력" />
+    <button class="btn" onclick="login()">로그인</button>
+    <p id="login-err" style="color:var(--danger);font-size:0.8rem;margin-top:12px"></p>
+  </div>
+</div>
+
+<!-- 대시보드 -->
+<div id="dashboard">
+  <div class="header">
+    <h1>TURN CITY 관리자</h1>
+    <div class="header-right">
+      <span id="refresh-time" style="font-size:0.75rem;color:var(--muted)"></span>
+      <button class="btn" style="width:auto;padding:8px 18px;font-size:0.8rem" onclick="loadData()">새로고침</button>
+      <button class="btn btn-danger" style="width:auto;padding:8px 18px;font-size:0.8rem" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">총 사전예약</div>
+      <div class="stat-value" id="stat-total">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">보상 수령</div>
+      <div class="stat-value" id="stat-claimed">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">대기중</div>
+      <div class="stat-value" id="stat-wait">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">사전예약 상태</div>
+      <div class="stat-value" id="stat-status" style="font-size:1rem;padding-top:6px">-</div>
+    </div>
+  </div>
+
+  <div class="control-bar">
+    <label>🚫 사전예약 마감</label>
+    <label class="toggle">
+      <input type="checkbox" id="closed-toggle" onchange="toggleClosed()" />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="search-bar">
+    <input class="input" type="text" id="search-input" placeholder="디스코드 태그 또는 예약번호 검색..." onkeydown="if(event.key==='Enter')search()" />
+    <button class="btn" onclick="search()">검색</button>
+    <button class="btn" style="background:var(--surface);border:1px solid var(--border);color:var(--text)" onclick="clearSearch()">초기화</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>예약번호</th>
+          <th>디스코드</th>
+          <th>신청경로</th>
+          <th>상태</th>
+          <th>신청일</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr><td colspan="6"><div class="spinner"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, orderBy, query, limit, startAfter } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey:            'YOUR_FIREBASE_API_KEY',
+  authDomain:        'turn-prereg.firebaseapp.com',
+  projectId:         'turn-prereg',
+  storageBucket:     'turn-prereg.appspot.com',
+  messagingSenderId: 'YOUR_SENDER_ID',
+  appId:             'YOUR_APP_ID',
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+const PASSWORD = 'adminturn2026';
+const PAGE_SIZE = 20;
+
+let allDocs = [];
+let filtered = [];
+let currentPage = 1;
+
+// ── 로그인 ──
+window.login = () => {
+  const pw = document.getElementById('pw-input').value;
+  if (pw === PASSWORD) {
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadData();
+  } else {
+    document.getElementById('login-err').textContent = '비밀번호가 틀렸습니다.';
+  }
+};
+
+window.logout = () => {
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+};
+
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.login();
+});
+
+// ── 데이터 로드 ──
+window.loadData = async () => {
+  try {
+    const snap = await getDocs(query(collection(db, 'prereg'), orderBy('number')));
+    allDocs = snap.docs.map(d => d.data());
+    filtered = [...allDocs];
+
+    // 통계
+    const total   = allDocs.length;
+    const claimed = allDocs.filter(d => d.claimed).length;
+    document.getElementById('stat-total').textContent   = total.toLocaleString();
+    document.getElementById('stat-claimed').textContent = claimed.toLocaleString();
+    document.getElementById('stat-wait').textContent    = (total - claimed).toLocaleString();
+
+    // 마감 상태
+    const metaSnap = await getDoc(doc(db, 'prereg_meta', 'settings'));
+    const closed = metaSnap.exists() ? (metaSnap.data().closed || false) : false;
+    document.getElementById('closed-toggle').checked = closed;
+    document.getElementById('stat-status').textContent = closed ? '🔴 마감' : '🟢 진행중';
+
+    currentPage = 1;
+    renderTable();
+
+    document.getElementById('refresh-time').textContent = '마지막 갱신: ' + new Date().toLocaleTimeString('ko-KR');
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+// ── 테이블 렌더 ──
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty">데이터가 없습니다.</div></td></tr>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = page.map(d => `
+    <tr>
+      <td style="color:var(--muted)">${d.number}</td>
+      <td style="font-family:monospace;color:var(--accent)">${d.code}</td>
+      <td>${esc(d.discordTag || d.discordId)}</td>
+      <td style="color:var(--muted)">${d.source || 'bot'}</td>
+      <td><span class="badge ${d.claimed ? 'badge-done' : 'badge-wait'}">${d.claimed ? '수령완료' : '대기중'}</span></td>
+      <td style="color:var(--muted)">${new Date(d.createdAt).toLocaleDateString('ko-KR')}</td>
+    </tr>
+  `).join('');
+
+  // 페이지네이션
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  pg.innerHTML = '';
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+    btn.textContent = i;
+    btn.onclick = () => { currentPage = i; renderTable(); };
+    pg.appendChild(btn);
+  }
+}
+
+// ── 검색 ──
+window.search = () => {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  if (!q) { filtered = [...allDocs]; }
+  else {
+    filtered = allDocs.filter(d =>
+      (d.discordTag || '').toLowerCase().includes(q) ||
+      (d.code || '').toLowerCase().includes(q) ||
+      (d.discordId || '').includes(q)
+    );
+  }
+  currentPage = 1;
+  renderTable();
+};
+
+window.clearSearch = () => {
+  document.getElementById('search-input').value = '';
+  filtered = [...allDocs];
+  currentPage = 1;
+  renderTable();
+};
+
+// ── 마감 토글 ──
+window.toggleClosed = async () => {
+  const closed = document.getElementById('closed-toggle').checked;
+  try {
+    await setDoc(doc(db, 'prereg_meta', 'settings'), { closed }, { merge: true });
+    document.getElementById('stat-status').textContent = closed ? '🔴 마감' : '🟢 진행중';
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
